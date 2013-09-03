@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>AngularJS + D3.js Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <style>
+        .node circle {
+          fill: #fff;
+          stroke: steelblue;
+          stroke-width: 1.5px;
+        }
+         
+        .node {
+          font: 10px sans-serif;
+        }
+         
+        .link {
+          fill: none;
+          stroke: #ccc;
+          stroke-width: 1.5px;
+        }
+        .notincluded {
+            text-decoration: line-through;
+        }
+
+    </style>
+</head>
+<body ng-app="demoApp">
+    <div ng-controller="ListCtrl">
+        <div class="row">
+            <div class="col-lg-3">
+                <input type="text" class="form-control" placeholder="Type here to filter" ng-model="search"><br>
+                <table class="table table-striped">
+                    <tr ng-repeat="item in items | filter:search"
+                        ng-click="itemSelected($index)">
+                        <td>{{item.name}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-lg-6" id="viz">
+            </div>
+            <div class="col-lg-3">
+                <treeList curitemval="curitem" parent="curitem"></treeList>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <<!--script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>-->
+    <!--<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <!--Actual App-->
+    <script src="main.js"></script>
+    <script type="text/javascript">
+        var width = 960,
+        height = 960;
+
+        var tree = d3.layout.tree()
+            .size([height-160, width - 160]);
+         
+        var diagonal = d3.svg.diagonal()
+            .projection(function(d) { return [d.y, d.x]; });
+
+        var draw =  function(json) {
+        //console.log("draw called");
+        document.getElementById("viz").innerHTML='';
+        var svg = d3.select("div#viz").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+          .append("g")
+            .attr("transform", "translate(40,0)");  
+          var nodes = tree.nodes(json),
+              links = tree.links(nodes);
+
+          var filteredNodes = [];
+          var filteredLinks = [];
+
+          nodes.forEach(function(node) {
+                if(node.included) {
+                    filteredNodes.push(node);
+                }
+          });
+          links.forEach(function(link) {
+                if(link.source.included && link.target.included) {
+                    filteredLinks.push(link);
+                }
+          });
+
+          var link = svg.selectAll("path.link")
+              .data(filteredLinks)
+            .enter().append("path")
+              .attr("class", "link")
+              .attr("d", diagonal);
+         
+          var node = svg.selectAll("g.node")
+              .data(filteredNodes)
+            .enter().append("g")
+              .attr("class", "node")
+              .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+         
+          node.append("circle")
+              .attr("r", 4.5);
+         
+          node.append("text")
+              .attr("dx", function(d) { return d.children ? -6 : 8; })
+              .attr("dy", 3)
+              .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
+              .text(function(d) { return d.name; });
+        };
+    </script>
+</body>
+</html>
